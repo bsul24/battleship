@@ -1,5 +1,7 @@
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -10,4 +12,44 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+}
+
+#app {
+  padding: 30px;
+  display: flex;
+  gap: 50px;
+}
+
+.gameboard {
+  border: 3px solid black;
+  display: grid;
+  width: 500px;
+  height: 500px;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+}
+
+.cell {
+  border: 1px solid black;
+  cursor: pointer;
+}
+
+.miss {
+  background-color: pink;
+}
+
+.hit {
+  background-color: red;
+}
+
+.ship {
+  background-color: gray;
+}
+
+.hidden {
+  background-color: blue;
+}
+
+.empty {
+  background-color: blue;
 }
