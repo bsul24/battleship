@@ -309,4 +309,66 @@ describe("Gameboard", () => {
     expect(secondShip.isSunk()).toBe(true);
     expect(gameboard.allShipsSunk()).toBe(true);
   });
+
+  describe("cell status", () => {
+    test("returns empty for an unattacked coordinate with no ship", () => {
+      const gameboard = new Gameboard();
+
+      expect(gameboard.getCellStatus([9, 9], true)).toBe("empty");
+    });
+
+    test("returns ship for an unattacked ship coordinate when ships are revealed", () => {
+      const gameboard = new Gameboard();
+      const ship = new Ship(3);
+
+      gameboard.placeShip(ship, [2, 4], "horizontal");
+
+      expect(gameboard.getCellStatus([2, 5], true)).toBe("ship");
+    });
+
+    test("returns hidden for an unattacked ship coordinate when ships are hidden", () => {
+      const gameboard = new Gameboard();
+      const ship = new Ship(3);
+
+      gameboard.placeShip(ship, [2, 4], "horizontal");
+
+      expect(gameboard.getCellStatus([2, 5], false)).toBe("hidden");
+    });
+
+    test("returns miss for an attacked coordinate with no ship", () => {
+      const gameboard = new Gameboard();
+
+      gameboard.receiveAttack([9, 9]);
+
+      expect(gameboard.getCellStatus([9, 9], true)).toBe("miss");
+    });
+
+    test("returns hit for an attacked coordinate with a ship", () => {
+      const gameboard = new Gameboard();
+      const ship = new Ship(3);
+
+      gameboard.placeShip(ship, [2, 4], "horizontal");
+      gameboard.receiveAttack([2, 5]);
+
+      expect(gameboard.getCellStatus([2, 5], true)).toBe("hit");
+    });
+
+    test("returns hit for an attacked ship coordinate even when ships are hidden", () => {
+      const gameboard = new Gameboard();
+      const ship = new Ship(3);
+
+      gameboard.placeShip(ship, [2, 4], "horizontal");
+      gameboard.receiveAttack([2, 5]);
+
+      expect(gameboard.getCellStatus([2, 5], false)).toBe("hit");
+    });
+
+    test("returns miss for an attacked empty coordinate even when ships are hidden", () => {
+      const gameboard = new Gameboard();
+
+      gameboard.receiveAttack([9, 9]);
+
+      expect(gameboard.getCellStatus([9, 9], false)).toBe("miss");
+    });
+  });
 });

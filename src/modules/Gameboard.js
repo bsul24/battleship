@@ -99,4 +99,21 @@ export default class Gameboard {
 
     return this.ships.every((ship) => ship.isSunk());
   }
+
+  getCellStatus([row, col], revealShips) {
+    const key = Gameboard.coordinateKey(row, col);
+    if (this.attackedCoordinates.has(key)) {
+      if (this.missedAttacks.has(key)) {
+        return "miss";
+      } else {
+        return "hit";
+      }
+    }
+
+    if (this.shipLocations.has(key)) {
+      return revealShips ? "ship" : "hidden";
+    }
+
+    return "empty";
+  }
 }

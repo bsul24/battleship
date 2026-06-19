@@ -349,4 +349,79 @@ describe("GameController", () => {
       expect(game.humanPlayer.gameboard.attackedCoordinates.size).toBe(0);
     });
   });
+
+  describe("starting a new game after progress has been made", () => {
+    test("startNewGame() resets winner to null", () => {
+      const game = new GameController();
+
+      game.winner = "human";
+
+      game.startNewGame();
+
+      expect(game.winner).toBeNull();
+    });
+
+    test("startNewGame() resets currentTurn to human", () => {
+      const game = new GameController();
+
+      game.currentTurn = "computer";
+
+      game.startNewGame();
+
+      expect(game.currentTurn).toBe("human");
+    });
+
+    test("startNewGame() creates fresh players", () => {
+      const game = new GameController();
+
+      const originalHumanPlayer = game.humanPlayer;
+      const originalComputerPlayer = game.computerPlayer;
+
+      game.startNewGame();
+
+      expect(game.humanPlayer).not.toBe(originalHumanPlayer);
+      expect(game.computerPlayer).not.toBe(originalComputerPlayer);
+    });
+
+    test("startNewGame() creates fresh gameboards", () => {
+      const game = new GameController();
+
+      const originalHumanBoard = game.humanPlayer.gameboard;
+      const originalComputerBoard = game.computerPlayer.gameboard;
+
+      game.startNewGame();
+
+      expect(game.humanPlayer.gameboard).not.toBe(originalHumanBoard);
+      expect(game.computerPlayer.gameboard).not.toBe(originalComputerBoard);
+    });
+
+    test("startNewGame() clears previous attacks", () => {
+      const game = new GameController();
+
+      game.attackComputer([9, 9]);
+      game.currentTurn = "computer";
+      game.attackHuman();
+
+      game.startNewGame();
+
+      expect(game.computerPlayer.gameboard.attackedCoordinates.size).toBe(0);
+      expect(game.computerPlayer.gameboard.missedAttacks.size).toBe(0);
+      expect(game.humanPlayer.gameboard.attackedCoordinates.size).toBe(0);
+      expect(game.humanPlayer.gameboard.missedAttacks.size).toBe(0);
+    });
+
+    test("startNewGame() restores unsunk ships", () => {
+      const game = new GameController();
+
+      game.attackComputer([0, 0]);
+      game.currentTurn = "human";
+      game.attackComputer([0, 1]);
+
+      game.startNewGame();
+
+      expect(
+        game.computerPlayer.gameboard.ships.every((ship) => !ship.isSunk()),
+      ).toBe(true);
+    });
+  });
 });
