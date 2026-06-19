@@ -40,7 +40,13 @@ function handleBoardClick(e, game) {
   const cell = e.target;
 
   if (e.target.dataset.type === "computer") {
-    game.attackComputer([+cell.dataset.row, +cell.dataset.col]);
+    const result = game.attackComputer([+cell.dataset.row, +cell.dataset.col]);
     renderGame(game);
+    if (result === "hit" || result === "miss") {
+      setTimeout(() => {
+        game.attackHuman();
+        renderGame(game);
+      }, 500);
+    }
   }
 }
