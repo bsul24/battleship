@@ -22,4 +22,18 @@ export default class GameController {
     player.gameboard.placeShip(new Ship(4), [3, 0], "horizontal");
     player.gameboard.placeShip(new Ship(5), [4, 0], "horizontal");
   }
+
+  attackComputer([row, col]) {
+    if (this.currentTurn !== "human") {
+      return "not-your-turn";
+    }
+    const attackResult = this.computerPlayer.gameboard.receiveAttack([
+      row,
+      col,
+    ]);
+    if (attackResult !== "already-attacked") {
+      this.currentTurn = "computer";
+    }
+    return attackResult;
+  }
 }

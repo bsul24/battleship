@@ -93,4 +93,90 @@ describe("GameController", () => {
 
     expect(game.winner).toBeNull();
   });
+
+  describe("human attacks", () => {
+    test("human attack targets the computer player's board", () => {
+      const game = new GameController();
+
+      game.startNewGame();
+
+      const result = game.attackComputer([0, 0]);
+
+      expect(result).toBe("hit");
+      expect(game.computerPlayer.gameboard.getShipAt([0, 0]).hits).toBe(1);
+    });
+
+    test("human attack can miss the computer player's board", () => {
+      const game = new GameController();
+
+      game.startNewGame();
+
+      const result = game.attackComputer([9, 9]);
+
+      expect(result).toBe("miss");
+      expect(
+        game.computerPlayer.gameboard.missedAttacks.has(
+          Gameboard.coordinateKey(9, 9),
+        ),
+      ).toBe(true);
+    });
+
+    test("human attack does not target the human player's own board", () => {
+      const game = new GameController();
+
+      game.startNewGame();
+
+      game.attackComputer([0, 0]);
+
+      expect(game.humanPlayer.gameboard.getShipAt([0, 0]).hits).toBe(0);
+    });
+
+    test("does not allow the human player to attack the same coordinate twice", () => {
+      const game = new GameController();
+
+      game.startNewGame();
+
+      game.attackComputer([0, 0]);
+      game.currentTurn = "human";
+      const result = game.attackComputer([0, 0]);
+
+      expect(result).toBe("already-attacked");
+      expect(game.computerPlayer.gameboard.getShipAt([0, 0]).hits).toBe(1);
+    });
+
+    test("switches to the computer turn after a valid human attack", () => {
+      const game = new GameController();
+
+      game.startNewGame();
+
+      game.attackComputer([0, 0]);
+
+      expect(game.currentTurn).toBe("computer");
+    });
+
+    test("does not switch turns after a duplicate human attack", () => {
+      const game = new GameController();
+
+      game.startNewGame();
+
+      game.attackComputer([0, 0]);
+      game.currentTurn = "human";
+
+      game.attackComputer([0, 0]);
+
+      expect(game.currentTurn).toBe("human");
+    });
+
+    test("does not allow the human player to attack when it is not their turn", () => {
+      const game = new GameController();
+
+      game.startNewGame();
+      game.currentTurn = "computer";
+
+      const result = game.attackComputer([0, 0]);
+
+      expect(result).toBe("not-your-turn");
+      expect(game.computerPlayer.gameboard.getShipAt([0, 0]).hits).toBe(0);
+    });
+  });
 });
