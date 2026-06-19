@@ -1,9 +1,15 @@
-const boardOne = document.querySelector(".board-one");
-const boardTwo = document.querySelector(".board-two");
+const humanBoard = document.querySelector(".human-board");
+const computerBoard = document.querySelector(".computer-board");
 
-export default function renderGame(game) {
-  renderBoard(game.humanPlayer.gameboard, boardOne, true);
-  renderBoard(game.computerPlayer.gameboard, boardTwo, false);
+export function renderGame(game) {
+  renderBoard(game.humanPlayer.gameboard, humanBoard, true);
+  renderBoard(game.computerPlayer.gameboard, computerBoard, false);
+}
+
+export function initDOMEvents(game) {
+  computerBoard.addEventListener("click", (e) => {
+    handleBoardClick(e, game);
+  });
 }
 
 function renderBoard(gameboard, container, revealShips) {
@@ -14,6 +20,7 @@ function renderBoard(gameboard, container, revealShips) {
       cell.classList.add("cell");
       cell.dataset.row = row;
       cell.dataset.col = col;
+      cell.dataset.type = container === humanBoard ? "human" : "computer";
       const status = gameboard.getCellStatus([row, col], revealShips);
       cell.classList.add(status);
       container.appendChild(cell);
@@ -23,4 +30,17 @@ function renderBoard(gameboard, container, revealShips) {
 
 function clearElement(element) {
   element.textContent = "";
+}
+
+function handleBoardClick(e, game) {
+  if (!e.target.classList.contains("cell")) {
+    return;
+  }
+
+  const cell = e.target;
+
+  if (e.target.dataset.type === "computer") {
+    game.attackComputer([+cell.dataset.row, +cell.dataset.col]);
+    renderGame(game);
+  }
 }
