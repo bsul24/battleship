@@ -2,6 +2,8 @@ export default class Gameboard {
   constructor() {
     this.ships = [];
     this.shipLocations = new Map();
+    this.missedAttacks = new Set();
+    this.attackedCoordinates = new Set();
   }
 
   placeShip(ship, coordinates, orientation) {
@@ -70,5 +72,23 @@ export default class Gameboard {
     }
 
     return false;
+  }
+
+  receiveAttack([row, col]) {
+    const key = Gameboard.coordinateKey(row, col);
+
+    if (this.attackedCoordinates.has(key)) {
+      return "already-attacked";
+    }
+
+    this.attackedCoordinates.add(key);
+
+    if (this.shipLocations.has(key)) {
+      this.getShipAt([row, col]).hit();
+      return "hit";
+    } else {
+      this.missedAttacks.add(key);
+      return "miss";
+    }
   }
 }

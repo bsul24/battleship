@@ -134,4 +134,128 @@ describe("Gameboard", () => {
     expect(gameboard.getShipAt([3, 5])).toBeUndefined();
     expect(gameboard.ships).not.toContain(verticalShip);
   });
+
+  test("starts with no missed attacks", () => {
+    const gameboard = new Gameboard();
+
+    expect(gameboard.missedAttacks).toEqual(new Set());
+  });
+
+  test("starts with no attacked coordinates", () => {
+    const gameboard = new Gameboard();
+
+    expect(gameboard.attackedCoordinates).toEqual(new Set());
+  });
+
+  test("records a missed attack", () => {
+    const gameboard = new Gameboard();
+
+    gameboard.receiveAttack([2, 4]);
+
+    expect(gameboard.missedAttacks.has(Gameboard.coordinateKey(2, 4))).toBe(
+      true,
+    );
+  });
+
+  test("receiveAttack() returns miss when no ship is at the coordinates", () => {
+    const gameboard = new Gameboard();
+
+    const result = gameboard.receiveAttack([2, 4]);
+
+    expect(result).toBe("miss");
+  });
+
+  test("records missed attacks in missedAttacks and attackedCoordinates", () => {
+    const gameboard = new Gameboard();
+
+    gameboard.receiveAttack([2, 4]);
+
+    expect(gameboard.missedAttacks.has(Gameboard.coordinateKey(2, 4))).toBe(
+      true,
+    );
+    expect(
+      gameboard.attackedCoordinates.has(Gameboard.coordinateKey(2, 4)),
+    ).toBe(true);
+  });
+
+  test("receiveAttack() hits a ship at the given coordinates", () => {
+    const gameboard = new Gameboard();
+    const ship = new Ship(3);
+
+    gameboard.placeShip(ship, [2, 4], "horizontal");
+    gameboard.receiveAttack([2, 5]);
+
+    expect(ship.hits).toBe(1);
+  });
+
+  test("receiveAttack() returns hit when a ship is at the coordinates", () => {
+    const gameboard = new Gameboard();
+    const ship = new Ship(3);
+
+    gameboard.placeShip(ship, [2, 4], "horizontal");
+
+    const result = gameboard.receiveAttack([2, 5]);
+
+    expect(result).toBe("hit");
+  });
+
+  test("records hit attacks in attackedCoordinates", () => {
+    const gameboard = new Gameboard();
+    const ship = new Ship(3);
+
+    gameboard.placeShip(ship, [2, 4], "horizontal");
+    gameboard.receiveAttack([2, 5]);
+
+    expect(
+      gameboard.attackedCoordinates.has(Gameboard.coordinateKey(2, 5)),
+    ).toBe(true);
+  });
+
+  test("does not record hit attacks as missed attacks", () => {
+    const gameboard = new Gameboard();
+    const ship = new Ship(3);
+
+    gameboard.placeShip(ship, [2, 4], "horizontal");
+    gameboard.receiveAttack([2, 5]);
+
+    expect(gameboard.missedAttacks.has(Gameboard.coordinateKey(2, 5))).toBe(
+      false,
+    );
+  });
+
+  test("does not allow the same missed coordinate to be attacked twice", () => {
+    const gameboard = new Gameboard();
+
+    gameboard.receiveAttack([2, 4]);
+    const result = gameboard.receiveAttack([2, 4]);
+
+    expect(result).toBe("already-attacked");
+    expect(gameboard.missedAttacks).toEqual(
+      new Set([Gameboard.coordinateKey(2, 4)]),
+    );
+  });
+
+  test("does not allow the same ship coordinate to be attacked twice", () => {
+    const gameboard = new Gameboard();
+    const ship = new Ship(3);
+
+    gameboard.placeShip(ship, [2, 4], "horizontal");
+
+    gameboard.receiveAttack([2, 5]);
+    const result = gameboard.receiveAttack([2, 5]);
+
+    expect(result).toBe("already-attacked");
+    expect(ship.hits).toBe(1);
+  });
+
+  test("does not add duplicate coordinates to attackedCoordinates", () => {
+    const gameboard = new Gameboard();
+
+    gameboard.receiveAttack([2, 4]);
+    gameboard.receiveAttack([2, 4]);
+
+    expect(gameboard.attackedCoordinates).toEqual(
+      new Set([Gameboard.coordinateKey(2, 4)]),
+    );
+  });
 });
