@@ -258,4 +258,55 @@ describe("Gameboard", () => {
       new Set([Gameboard.coordinateKey(2, 4)]),
     );
   });
+
+  test("allShipsSunk() returns false when no ships are placed", () => {
+    const gameboard = new Gameboard();
+
+    expect(gameboard.allShipsSunk()).toBe(false);
+  });
+
+  test("allShipsSunk() returns false when placed ships have not been sunk", () => {
+    const gameboard = new Gameboard();
+    const ship = new Ship(3);
+
+    gameboard.placeShip(ship, [2, 4], "horizontal");
+
+    expect(gameboard.allShipsSunk()).toBe(false);
+  });
+
+  test("allShipsSunk() returns false when only some ships are sunk", () => {
+    const gameboard = new Gameboard();
+    const firstShip = new Ship(2);
+    const secondShip = new Ship(3);
+
+    gameboard.placeShip(firstShip, [0, 0], "horizontal");
+    gameboard.placeShip(secondShip, [2, 4], "horizontal");
+
+    gameboard.receiveAttack([0, 0]);
+    gameboard.receiveAttack([0, 1]);
+
+    expect(firstShip.isSunk()).toBe(true);
+    expect(secondShip.isSunk()).toBe(false);
+    expect(gameboard.allShipsSunk()).toBe(false);
+  });
+
+  test("allShipsSunk() returns true when all placed ships are sunk", () => {
+    const gameboard = new Gameboard();
+    const firstShip = new Ship(2);
+    const secondShip = new Ship(3);
+
+    gameboard.placeShip(firstShip, [0, 0], "horizontal");
+    gameboard.placeShip(secondShip, [2, 4], "horizontal");
+
+    gameboard.receiveAttack([0, 0]);
+    gameboard.receiveAttack([0, 1]);
+
+    gameboard.receiveAttack([2, 4]);
+    gameboard.receiveAttack([2, 5]);
+    gameboard.receiveAttack([2, 6]);
+
+    expect(firstShip.isSunk()).toBe(true);
+    expect(secondShip.isSunk()).toBe(true);
+    expect(gameboard.allShipsSunk()).toBe(true);
+  });
 });
