@@ -24,6 +24,10 @@ export default class GameController {
   }
 
   attackComputer([row, col]) {
+    if (this.winner) {
+      return "game-over";
+    }
+
     if (this.currentTurn !== "human") {
       return "not-your-turn";
     }
@@ -31,13 +35,21 @@ export default class GameController {
       row,
       col,
     ]);
-    if (attackResult !== "already-attacked") {
-      this.currentTurn = "computer";
+    if (this.computerPlayer.gameboard.allShipsSunk()) {
+      this.winner = "human";
+    } else {
+      if (attackResult !== "already-attacked") {
+        this.currentTurn = "computer";
+      }
     }
     return attackResult;
   }
 
   attackHuman() {
+    if (this.winner) {
+      return "game-over";
+    }
+
     if (this.currentTurn !== "computer") {
       return "not-your-turn";
     }
@@ -45,7 +57,11 @@ export default class GameController {
     const attackResult = this.humanPlayer.gameboard.receiveAttack(
       this.computerPlayer.getRandomAttack(),
     );
-    this.currentTurn = "human";
+    if (this.humanPlayer.gameboard.allShipsSunk()) {
+      this.winner = "computer";
+    } else {
+      this.currentTurn = "human";
+    }
     return attackResult;
   }
 }

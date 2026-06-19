@@ -244,4 +244,109 @@ describe("GameController", () => {
       expect(game.humanPlayer.gameboard.attackedCoordinates.size).toBe(2);
     });
   });
+
+  describe("game over", () => {
+    const shipCoordinates = [
+      [0, 0],
+      [0, 1],
+
+      [1, 0],
+      [1, 1],
+      [1, 2],
+
+      [2, 0],
+      [2, 1],
+      [2, 2],
+
+      [3, 0],
+      [3, 1],
+      [3, 2],
+      [3, 3],
+
+      [4, 0],
+      [4, 1],
+      [4, 2],
+      [4, 3],
+      [4, 4],
+    ];
+
+    test("winner starts as null", () => {
+      const game = new GameController();
+
+      expect(game.winner).toBeNull();
+    });
+
+    test("winner stays null when only some computer ships are sunk", () => {
+      const game = new GameController();
+
+      game.currentTurn = "human";
+      game.attackComputer([0, 0]);
+
+      game.currentTurn = "human";
+      game.attackComputer([0, 1]);
+
+      expect(game.computerPlayer.gameboard.ships[0].isSunk()).toBe(true);
+      expect(game.winner).toBeNull();
+    });
+
+    test("sets winner to human when all computer ships are sunk", () => {
+      const game = new GameController();
+
+      shipCoordinates.forEach((coordinate) => {
+        game.currentTurn = "human";
+        game.attackComputer(coordinate);
+      });
+
+      expect(game.computerPlayer.gameboard.allShipsSunk()).toBe(true);
+      expect(game.winner).toBe("human");
+    });
+
+    test("sets winner to computer when all human ships are sunk", () => {
+      const game = new GameController();
+      const shipCoordinatesCopy = [...shipCoordinates];
+      jest
+        .spyOn(game.computerPlayer, "getRandomAttack")
+        .mockImplementation(() => shipCoordinatesCopy.shift());
+
+      for (let i = 0; i < 17; i++) {
+        game.currentTurn = "computer";
+        game.attackHuman();
+      }
+
+      expect(game.humanPlayer.gameboard.allShipsSunk()).toBe(true);
+      expect(game.winner).toBe("computer");
+    });
+
+    test("does not allow the human player to attack after the game is over", () => {
+      const game = new GameController();
+
+      shipCoordinates.forEach((coordinate) => {
+        game.currentTurn = "human";
+        game.attackComputer(coordinate);
+      });
+      game.currentTurn = "human";
+      const result = game.attackComputer([9, 9]);
+
+      expect(result).toBe("game-over");
+      expect(game.computerPlayer.gameboard.missedAttacks.has("9,9")).toBe(
+        false,
+      );
+    });
+
+    test("does not allow the computer player to attack after the game is over", () => {
+      const game = new GameController();
+
+      shipCoordinates.forEach((coordinate) => {
+        game.currentTurn = "human";
+        game.attackComputer(coordinate);
+      });
+
+      game.currentTurn = "computer";
+
+      const result = game.attackHuman();
+
+      expect(result).toBe("game-over");
+      expect(game.humanPlayer.gameboard.attackedCoordinates.size).toBe(0);
+    });
+  });
 });
