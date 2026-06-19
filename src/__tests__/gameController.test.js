@@ -179,4 +179,69 @@ describe("GameController", () => {
       expect(game.computerPlayer.gameboard.getShipAt([0, 0]).hits).toBe(0);
     });
   });
+
+  describe("computer attacks", () => {
+    test("computer attack targets the human player's board", () => {
+      const game = new GameController();
+
+      game.currentTurn = "computer";
+
+      game.attackHuman();
+
+      expect(game.humanPlayer.gameboard.attackedCoordinates.size).toBe(1);
+    });
+
+    test("computer attack returns hit or miss", () => {
+      const game = new GameController();
+
+      game.currentTurn = "computer";
+
+      const result = game.attackHuman();
+
+      expect(["hit", "miss"]).toContain(result);
+    });
+
+    test("computer attack switches the turn back to human", () => {
+      const game = new GameController();
+
+      game.currentTurn = "computer";
+
+      game.attackHuman();
+
+      expect(game.currentTurn).toBe("human");
+    });
+
+    test("does not allow the computer to attack when it is not the computer's turn", () => {
+      const game = new GameController();
+
+      game.currentTurn = "human";
+
+      const result = game.attackHuman();
+
+      expect(result).toBe("not-your-turn");
+      expect(game.humanPlayer.gameboard.attackedCoordinates.size).toBe(0);
+    });
+
+    test("computer attack does not target the computer player's own board", () => {
+      const game = new GameController();
+
+      game.currentTurn = "computer";
+
+      game.attackHuman();
+
+      expect(game.computerPlayer.gameboard.attackedCoordinates.size).toBe(0);
+    });
+
+    test("computer can make multiple attacks without repeating coordinates", () => {
+      const game = new GameController();
+
+      game.currentTurn = "computer";
+      game.attackHuman();
+
+      game.currentTurn = "computer";
+      game.attackHuman();
+
+      expect(game.humanPlayer.gameboard.attackedCoordinates.size).toBe(2);
+    });
+  });
 });

@@ -36,4 +36,16 @@ export default class GameController {
     }
     return attackResult;
   }
+
+  attackHuman() {
+    if (this.currentTurn !== "computer") {
+      return "not-your-turn";
+    }
+
+    const attackResult = this.humanPlayer.gameboard.receiveAttack(
+      this.computerPlayer.getRandomAttack(),
+    );
+    this.currentTurn = "human";
+    return attackResult;
+  }
 }
