@@ -371,4 +371,76 @@ describe("Gameboard", () => {
       expect(gameboard.getCellStatus([9, 9], false)).toBe("miss");
     });
   });
+
+  describe("random ship placement", () => {
+    test("placeShipsRandomly() places five ships", () => {
+      const gameboard = new Gameboard();
+
+      gameboard.placeShipsRandomly();
+
+      expect(gameboard.ships).toHaveLength(5);
+    });
+
+    test("placeShipsRandomly() places the standard ship lengths", () => {
+      const gameboard = new Gameboard();
+
+      gameboard.placeShipsRandomly();
+
+      const shipLengths = gameboard.ships
+        .map((ship) => ship.length)
+        .sort((a, b) => a - b);
+
+      expect(shipLengths).toEqual([2, 3, 3, 4, 5]);
+    });
+
+    test("placeShipsRandomly() places exactly 17 ship segments", () => {
+      const gameboard = new Gameboard();
+
+      gameboard.placeShipsRandomly();
+
+      expect(gameboard.shipLocations.size).toBe(17);
+    });
+
+    test("placeShipsRandomly() does not place any ship segment out of bounds", () => {
+      const gameboard = new Gameboard();
+
+      gameboard.placeShipsRandomly();
+
+      [...gameboard.shipLocations.keys()].forEach((key) => {
+        const [row, col] = key.split(",").map(Number);
+
+        expect(row).toBeGreaterThanOrEqual(0);
+        expect(row).toBeLessThanOrEqual(9);
+        expect(col).toBeGreaterThanOrEqual(0);
+        expect(col).toBeLessThanOrEqual(9);
+      });
+    });
+
+    test("placeShipsRandomly() does not overlap ships", () => {
+      const gameboard = new Gameboard();
+
+      gameboard.placeShipsRandomly();
+
+      const occupiedCoordinates = [...gameboard.shipLocations.keys()];
+      const uniqueCoordinates = new Set(occupiedCoordinates);
+
+      expect(uniqueCoordinates.size).toBe(occupiedCoordinates.length);
+      expect(uniqueCoordinates.size).toBe(17);
+    });
+
+    test("placeShipsRandomly() clears existing ships before placing new ones", () => {
+      const gameboard = new Gameboard();
+      const ship = new Ship(2);
+
+      gameboard.placeShip(ship, [0, 0], "horizontal");
+      gameboard.receiveAttack([9, 9]);
+
+      gameboard.placeShipsRandomly();
+
+      expect(gameboard.ships).toHaveLength(5);
+      expect(gameboard.shipLocations.size).toBe(17);
+      expect(gameboard.missedAttacks.size).toBe(0);
+      expect(gameboard.attackedCoordinates.size).toBe(0);
+    });
+  });
 });

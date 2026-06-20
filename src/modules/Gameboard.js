@@ -1,3 +1,5 @@
+import Ship from "./Ship.js";
+
 export default class Gameboard {
   constructor() {
     this.ships = [];
@@ -28,6 +30,37 @@ export default class Gameboard {
     }
 
     return true;
+  }
+
+  clearShips() {
+    this.ships = [];
+    this.shipLocations.clear();
+    this.missedAttacks.clear();
+    this.attackedCoordinates.clear();
+  }
+
+  placeShipsRandomly() {
+    this.clearShips();
+
+    const shipLengths = [2, 3, 3, 4, 5];
+
+    for (const val of shipLengths) {
+      while (true) {
+        const ship = new Ship(val);
+        const coordinates = this.generateRandomCoordinates();
+        const orientation =
+          Math.floor(Math.random() * 2) === 0 ? "horizontal" : "vertical";
+        if (this.placeShip(ship, coordinates, orientation)) {
+          break;
+        }
+      }
+    }
+  }
+
+  generateRandomCoordinates() {
+    const row = Math.floor(Math.random() * 10);
+    const col = Math.floor(Math.random() * 10);
+    return [row, col];
   }
 
   getShipAt([row, col]) {
