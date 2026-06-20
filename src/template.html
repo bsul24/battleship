@@ -7,18 +7,46 @@
   </head>
   <body>
     <div id="app">
-      <h1>Battleship</h1>
-      <h2 class="winner"></h2>
-      <div class="gameboards-container">
-        <div class="human-board-container">
-          <div class="gameboard human-board"></div>
-          <p class="attack-status human-board-attack-status"></p>
-        </div>
-        <div class="computer-board-container">
-          <div class="gameboard computer-board"></div>
-          <p class="attack-status computer-board-attack-status"></p>
-        </div>
-      </div>
+      <header class="page-header">
+        <h1>Battleship</h1>
+      </header>
+
+      <main class="game">
+        <section class="game-status-panel" aria-live="polite">
+          <h2 class="main-status">Your turn</h2>
+          <p class="sub-status">Choose a coordinate on the computer board.</p>
+
+          <div class="action-log">
+            <p class="player-action-status">Your last attack: —</p>
+            <p class="computer-action-status">Computer's last attack: —</p>
+          </div>
+
+          <button class="new-game-btn" type="button">New Game</button>
+        </section>
+
+        <section class="gameboards-container">
+          <div class="board-section human-board-container">
+            <div class="board-header">
+              <h3 class="gameboard-title">Your Board</h3>
+              <p class="board-description">Your ships are visible here.</p>
+            </div>
+
+            <div class="gameboard human-board" aria-label="Your board"></div>
+          </div>
+
+          <div class="board-section computer-board-container">
+            <div class="board-header">
+              <h3 class="gameboard-title">Computer Board</h3>
+              <p class="board-description">Attack this board.</p>
+            </div>
+
+            <div
+              class="gameboard computer-board"
+              aria-label="Computer board"
+            ></div>
+          </div>
+        </section>
+      </main>
     </div>
   </body>
 </html>
