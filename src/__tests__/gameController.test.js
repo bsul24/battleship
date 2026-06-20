@@ -2,6 +2,55 @@ import GameController from "../modules/gameController.js";
 import Player from "../modules/Player.js";
 import Gameboard from "../modules/Gameboard.js";
 
+function getOccupiedCoordinate(gameboard) {
+  const key = gameboard.shipLocations.keys().next().value;
+  return key.split(",").map(Number);
+}
+
+function getEmptyCoordinate(gameboard) {
+  for (let row = 0; row < 10; row++) {
+    for (let col = 0; col < 10; col++) {
+      const key = Gameboard.coordinateKey(row, col);
+
+      if (!gameboard.shipLocations.has(key)) {
+        return [row, col];
+      }
+    }
+  }
+
+  return null;
+}
+
+function getUnattackedCoordinate(gameboard) {
+  for (let row = 0; row < 10; row++) {
+    for (let col = 0; col < 10; col++) {
+      const key = Gameboard.coordinateKey(row, col);
+
+      if (!gameboard.attackedCoordinates.has(key)) {
+        return [row, col];
+      }
+    }
+  }
+
+  return null;
+}
+
+function getShipCoordinates(gameboard, targetShip) {
+  return [...gameboard.shipLocations.entries()]
+    .filter(([, ship]) => ship === targetShip)
+    .map(([key]) => key.split(",").map(Number));
+}
+
+function getAllShipCoordinates(gameboard) {
+  return [...gameboard.shipLocations.keys()].map((key) =>
+    key.split(",").map(Number),
+  );
+}
+
+function getTotalHits(gameboard) {
+  return gameboard.ships.reduce((total, ship) => total + ship.hits, 0);
+}
+
 describe("GameController", () => {
   test("starts a new game with a human player", () => {
     const game = new GameController();
@@ -38,20 +87,22 @@ describe("GameController", () => {
     expect(game.humanPlayer.gameboard).not.toBe(game.computerPlayer.gameboard);
   });
 
-  test("places predetermined ships on the human player's board", () => {
+  test("places ships on the human player's board", () => {
     const game = new GameController();
 
     game.startNewGame();
 
     expect(game.humanPlayer.gameboard.ships).toHaveLength(5);
+    expect(game.humanPlayer.gameboard.shipLocations.size).toBe(17);
   });
 
-  test("places predetermined ships on the computer player's board", () => {
+  test("places ships on the computer player's board", () => {
     const game = new GameController();
 
     game.startNewGame();
 
     expect(game.computerPlayer.gameboard.ships).toHaveLength(5);
+    expect(game.computerPlayer.gameboard.shipLocations.size).toBe(17);
   });
 
   test("places the standard ship lengths on the human player's board", () => {
@@ -97,86 +148,89 @@ describe("GameController", () => {
   describe("human attacks", () => {
     test("human attack targets the computer player's board", () => {
       const game = new GameController();
+      const coordinate = getOccupiedCoordinate(game.computerPlayer.gameboard);
+      const ship = game.computerPlayer.gameboard.getShipAt(coordinate);
 
-      game.startNewGame();
-
-      const result = game.attackComputer([0, 0]);
+      const result = game.attackComputer(coordinate);
 
       expect(result).toBe("hit");
-      expect(game.computerPlayer.gameboard.getShipAt([0, 0]).hits).toBe(1);
+      expect(ship.hits).toBe(1);
     });
 
     test("human attack can miss the computer player's board", () => {
       const game = new GameController();
+      const coordinate = getEmptyCoordinate(game.computerPlayer.gameboard);
+      const key = Gameboard.coordinateKey(...coordinate);
 
-      game.startNewGame();
-
-      const result = game.attackComputer([9, 9]);
+      const result = game.attackComputer(coordinate);
 
       expect(result).toBe("miss");
-      expect(
-        game.computerPlayer.gameboard.missedAttacks.has(
-          Gameboard.coordinateKey(9, 9),
-        ),
-      ).toBe(true);
+      expect(game.computerPlayer.gameboard.missedAttacks.has(key)).toBe(true);
     });
 
     test("human attack does not target the human player's own board", () => {
       const game = new GameController();
+      const coordinate = getOccupiedCoordinate(game.computerPlayer.gameboard);
+      const humanHitsBefore = getTotalHits(game.humanPlayer.gameboard);
 
-      game.startNewGame();
+      game.attackComputer(coordinate);
 
-      game.attackComputer([0, 0]);
-
-      expect(game.humanPlayer.gameboard.getShipAt([0, 0]).hits).toBe(0);
+      expect(getTotalHits(game.humanPlayer.gameboard)).toBe(humanHitsBefore);
     });
 
     test("does not allow the human player to attack the same coordinate twice", () => {
       const game = new GameController();
+      const coordinate = getOccupiedCoordinate(game.computerPlayer.gameboard);
+      const ship = game.computerPlayer.gameboard.getShipAt(coordinate);
 
-      game.startNewGame();
-
-      game.attackComputer([0, 0]);
+      game.attackComputer(coordinate);
       game.currentTurn = "human";
-      const result = game.attackComputer([0, 0]);
+
+      const result = game.attackComputer(coordinate);
 
       expect(result).toBe("already-attacked");
-      expect(game.computerPlayer.gameboard.getShipAt([0, 0]).hits).toBe(1);
+      expect(ship.hits).toBe(1);
     });
 
     test("switches to the computer turn after a valid human attack", () => {
       const game = new GameController();
+      const coordinate = getOccupiedCoordinate(game.computerPlayer.gameboard);
 
-      game.startNewGame();
-
-      game.attackComputer([0, 0]);
+      game.attackComputer(coordinate);
 
       expect(game.currentTurn).toBe("computer");
     });
 
     test("does not switch turns after a duplicate human attack", () => {
       const game = new GameController();
+      const coordinate = getOccupiedCoordinate(game.computerPlayer.gameboard);
 
-      game.startNewGame();
-
-      game.attackComputer([0, 0]);
+      game.attackComputer(coordinate);
       game.currentTurn = "human";
 
-      game.attackComputer([0, 0]);
+      game.attackComputer(coordinate);
 
       expect(game.currentTurn).toBe("human");
     });
 
     test("does not allow the human player to attack when it is not their turn", () => {
       const game = new GameController();
+      const coordinate = getOccupiedCoordinate(game.computerPlayer.gameboard);
+      const attackedCountBefore =
+        game.computerPlayer.gameboard.attackedCoordinates.size;
+      const computerHitsBefore = getTotalHits(game.computerPlayer.gameboard);
 
-      game.startNewGame();
       game.currentTurn = "computer";
 
-      const result = game.attackComputer([0, 0]);
+      const result = game.attackComputer(coordinate);
 
       expect(result).toBe("not-your-turn");
-      expect(game.computerPlayer.gameboard.getShipAt([0, 0]).hits).toBe(0);
+      expect(game.computerPlayer.gameboard.attackedCoordinates.size).toBe(
+        attackedCountBefore,
+      );
+      expect(getTotalHits(game.computerPlayer.gameboard)).toBe(
+        computerHitsBefore,
+      );
     });
   });
 
@@ -246,53 +300,34 @@ describe("GameController", () => {
   });
 
   describe("game over", () => {
-    const shipCoordinates = [
-      [0, 0],
-      [0, 1],
-
-      [1, 0],
-      [1, 1],
-      [1, 2],
-
-      [2, 0],
-      [2, 1],
-      [2, 2],
-
-      [3, 0],
-      [3, 1],
-      [3, 2],
-      [3, 3],
-
-      [4, 0],
-      [4, 1],
-      [4, 2],
-      [4, 3],
-      [4, 4],
-    ];
-
     test("winner starts as null", () => {
       const game = new GameController();
 
       expect(game.winner).toBeNull();
     });
 
-    test("winner stays null when only some computer ships are sunk", () => {
+    test("winner stays null when only one computer ship is sunk", () => {
       const game = new GameController();
+      const ship = game.computerPlayer.gameboard.ships[0];
+      const coordinates = getShipCoordinates(
+        game.computerPlayer.gameboard,
+        ship,
+      );
 
-      game.currentTurn = "human";
-      game.attackComputer([0, 0]);
+      coordinates.forEach((coordinate) => {
+        game.currentTurn = "human";
+        game.attackComputer(coordinate);
+      });
 
-      game.currentTurn = "human";
-      game.attackComputer([0, 1]);
-
-      expect(game.computerPlayer.gameboard.ships[0].isSunk()).toBe(true);
+      expect(ship.isSunk()).toBe(true);
       expect(game.winner).toBeNull();
     });
 
     test("sets winner to human when all computer ships are sunk", () => {
       const game = new GameController();
+      const coordinates = getAllShipCoordinates(game.computerPlayer.gameboard);
 
-      shipCoordinates.forEach((coordinate) => {
+      coordinates.forEach((coordinate) => {
         game.currentTurn = "human";
         game.attackComputer(coordinate);
       });
@@ -303,10 +338,11 @@ describe("GameController", () => {
 
     test("sets winner to computer when all human ships are sunk", () => {
       const game = new GameController();
-      const shipCoordinatesCopy = [...shipCoordinates];
+      const coordinates = getAllShipCoordinates(game.humanPlayer.gameboard);
+
       jest
         .spyOn(game.computerPlayer, "getRandomAttack")
-        .mockImplementation(() => shipCoordinatesCopy.shift());
+        .mockImplementation(() => coordinates.shift());
 
       for (let i = 0; i < 17; i++) {
         game.currentTurn = "computer";
@@ -319,34 +355,52 @@ describe("GameController", () => {
 
     test("does not allow the human player to attack after the game is over", () => {
       const game = new GameController();
+      const coordinates = getAllShipCoordinates(game.computerPlayer.gameboard);
 
-      shipCoordinates.forEach((coordinate) => {
+      coordinates.forEach((coordinate) => {
         game.currentTurn = "human";
         game.attackComputer(coordinate);
       });
+
+      const attackedCountBefore =
+        game.computerPlayer.gameboard.attackedCoordinates.size;
+      const missedCountBefore =
+        game.computerPlayer.gameboard.missedAttacks.size;
+      const coordinate = getUnattackedCoordinate(game.computerPlayer.gameboard);
+
       game.currentTurn = "human";
-      const result = game.attackComputer([9, 9]);
+
+      const result = game.attackComputer(coordinate);
 
       expect(result).toBe("game-over");
-      expect(game.computerPlayer.gameboard.missedAttacks.has("9,9")).toBe(
-        false,
+      expect(game.computerPlayer.gameboard.attackedCoordinates.size).toBe(
+        attackedCountBefore,
+      );
+      expect(game.computerPlayer.gameboard.missedAttacks.size).toBe(
+        missedCountBefore,
       );
     });
 
     test("does not allow the computer player to attack after the game is over", () => {
       const game = new GameController();
+      const coordinates = getAllShipCoordinates(game.computerPlayer.gameboard);
 
-      shipCoordinates.forEach((coordinate) => {
+      coordinates.forEach((coordinate) => {
         game.currentTurn = "human";
         game.attackComputer(coordinate);
       });
+
+      const attackedCountBefore =
+        game.humanPlayer.gameboard.attackedCoordinates.size;
 
       game.currentTurn = "computer";
 
       const result = game.attackHuman();
 
       expect(result).toBe("game-over");
-      expect(game.humanPlayer.gameboard.attackedCoordinates.size).toBe(0);
+      expect(game.humanPlayer.gameboard.attackedCoordinates.size).toBe(
+        attackedCountBefore,
+      );
     });
   });
 
@@ -397,8 +451,9 @@ describe("GameController", () => {
 
     test("startNewGame() clears previous attacks", () => {
       const game = new GameController();
+      const coordinate = getEmptyCoordinate(game.computerPlayer.gameboard);
 
-      game.attackComputer([9, 9]);
+      game.attackComputer(coordinate);
       game.currentTurn = "computer";
       game.attackHuman();
 
@@ -412,16 +467,26 @@ describe("GameController", () => {
 
     test("startNewGame() restores unsunk ships", () => {
       const game = new GameController();
+      const coordinate = getOccupiedCoordinate(game.computerPlayer.gameboard);
 
-      game.attackComputer([0, 0]);
-      game.currentTurn = "human";
-      game.attackComputer([0, 1]);
+      game.attackComputer(coordinate);
 
       game.startNewGame();
 
       expect(
         game.computerPlayer.gameboard.ships.every((ship) => !ship.isSunk()),
       ).toBe(true);
+    });
+
+    test("startNewGame() places ships on both boards", () => {
+      const game = new GameController();
+
+      game.startNewGame();
+
+      expect(game.humanPlayer.gameboard.ships).toHaveLength(5);
+      expect(game.humanPlayer.gameboard.shipLocations.size).toBe(17);
+      expect(game.computerPlayer.gameboard.ships).toHaveLength(5);
+      expect(game.computerPlayer.gameboard.shipLocations.size).toBe(17);
     });
   });
 });

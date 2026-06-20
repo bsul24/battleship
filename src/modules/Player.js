@@ -23,4 +23,8 @@ export default class Player {
       }
     }
   }
+
+  generateRandomShips() {
+    this.gameboard.placeShipsRandomly();
+  }
 }
