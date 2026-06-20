@@ -17,7 +17,13 @@ body {
 #app {
   padding: 30px;
   display: flex;
+  flex-direction: column;
+}
+
+.gameboards-container {
+  display: flex;
   gap: 50px;
+  margin-top: 30px;
 }
 
 .gameboard {
@@ -27,6 +33,10 @@ body {
   height: 500px;
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
+}
+
+.attack-status {
+  font-size: 32px;
 }
 
 .cell {
