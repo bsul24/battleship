@@ -122,6 +122,8 @@ function handleNewGameBtnClick(game) {
 function handleRandomizeFleetClick(game) {
   game.randomizeHumanFleet();
   renderGame(game);
+  mainStatus.textContent = "Fleet randomized.";
+  subStatus.textContent = "Choose a coordinate on the computer board.";
 }
 
 function isGameOver(game) {
