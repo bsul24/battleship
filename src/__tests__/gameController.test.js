@@ -489,4 +489,131 @@ describe("GameController", () => {
       expect(game.computerPlayer.gameboard.shipLocations.size).toBe(17);
     });
   });
+
+  describe("randomizing the human fleet", () => {
+    test("randomizeHumanFleet() places ships on the human board", () => {
+      const game = new GameController();
+
+      game.randomizeHumanFleet();
+
+      expect(game.humanPlayer.gameboard.ships).toHaveLength(5);
+      expect(game.humanPlayer.gameboard.shipLocations.size).toBe(17);
+    });
+
+    test("randomizeHumanFleet() places the standard ship lengths", () => {
+      const game = new GameController();
+
+      game.randomizeHumanFleet();
+
+      const shipLengths = game.humanPlayer.gameboard.ships
+        .map((ship) => ship.length)
+        .sort((a, b) => a - b);
+
+      expect(shipLengths).toEqual([2, 3, 3, 4, 5]);
+    });
+
+    test("randomizeHumanFleet() does not change the computer board", () => {
+      const game = new GameController();
+
+      const originalComputerCoordinates = [
+        ...game.computerPlayer.gameboard.shipLocations.keys(),
+      ];
+
+      game.randomizeHumanFleet();
+
+      expect([...game.computerPlayer.gameboard.shipLocations.keys()]).toEqual(
+        originalComputerCoordinates,
+      );
+    });
+
+    test("randomizeHumanFleet() clears attacks on the human board", () => {
+      const game = new GameController();
+
+      game.currentTurn = "computer";
+      game.attackHuman();
+
+      game.randomizeHumanFleet();
+
+      expect(game.humanPlayer.gameboard.attackedCoordinates.size).toBe(0);
+      expect(game.humanPlayer.gameboard.missedAttacks.size).toBe(0);
+    });
+
+    test("game starts with gameStarted set to false", () => {
+      const game = new GameController();
+
+      expect(game.gameStarted).toBe(false);
+    });
+
+    test("gameStarted becomes true after a valid human attack", () => {
+      const game = new GameController();
+      const coordinate = [
+        ...game.computerPlayer.gameboard.shipLocations.keys(),
+      ][0]
+        .split(",")
+        .map(Number);
+
+      game.attackComputer(coordinate);
+
+      expect(game.gameStarted).toBe(true);
+    });
+
+    test("randomizeHumanFleet() returns true before the game has started", () => {
+      const game = new GameController();
+
+      const result = game.randomizeHumanFleet();
+
+      expect(result).toBe(true);
+    });
+
+    test("randomizeHumanFleet() returns false after the game has started", () => {
+      const game = new GameController();
+      const coordinate = [
+        ...game.computerPlayer.gameboard.shipLocations.keys(),
+      ][0]
+        .split(",")
+        .map(Number);
+
+      game.attackComputer(coordinate);
+
+      const result = game.randomizeHumanFleet();
+
+      expect(result).toBe(false);
+    });
+
+    test("randomizeHumanFleet() does not change the human board after the game has started", () => {
+      const game = new GameController();
+      const coordinate = [
+        ...game.computerPlayer.gameboard.shipLocations.keys(),
+      ][0]
+        .split(",")
+        .map(Number);
+
+      game.attackComputer(coordinate);
+
+      const originalHumanCoordinates = [
+        ...game.humanPlayer.gameboard.shipLocations.keys(),
+      ];
+
+      game.randomizeHumanFleet();
+
+      expect([...game.humanPlayer.gameboard.shipLocations.keys()]).toEqual(
+        originalHumanCoordinates,
+      );
+    });
+
+    test("startNewGame() resets gameStarted to false", () => {
+      const game = new GameController();
+      const coordinate = [
+        ...game.computerPlayer.gameboard.shipLocations.keys(),
+      ][0]
+        .split(",")
+        .map(Number);
+
+      game.attackComputer(coordinate);
+
+      game.startNewGame();
+
+      expect(game.gameStarted).toBe(false);
+    });
+  });
 });

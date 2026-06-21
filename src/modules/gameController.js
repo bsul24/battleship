@@ -8,6 +8,7 @@ export default class GameController {
   startNewGame() {
     this.currentTurn = "human";
     this.winner = null;
+    this.gameStarted = false;
     this.humanPlayer = new Player("human");
     this.computerPlayer = new Player("computer");
     this.placeShipsRandomly(this.humanPlayer);
@@ -26,6 +27,9 @@ export default class GameController {
     if (this.currentTurn !== "human") {
       return "not-your-turn";
     }
+
+    this.gameStarted = true;
+
     const attackResult = this.computerPlayer.gameboard.receiveAttack([
       row,
       col,
@@ -58,5 +62,13 @@ export default class GameController {
       this.currentTurn = "human";
     }
     return attackResult;
+  }
+
+  randomizeHumanFleet() {
+    if (this.gameStarted) {
+      return false;
+    }
+    this.placeShipsRandomly(this.humanPlayer);
+    return true;
   }
 }

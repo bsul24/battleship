@@ -5,6 +5,7 @@ const subStatus = document.querySelector(".sub-status");
 const playerActionStatus = document.querySelector(".player-action-status");
 const computerActionStatus = document.querySelector(".computer-action-status");
 const newGameBtn = document.querySelector(".new-game-btn");
+const randomizeFleetBtn = document.querySelector(".randomize-fleet-btn");
 let prevComputerAttack = null;
 let isComputerThinking = false;
 
@@ -20,6 +21,10 @@ export function initDOMEvents(game) {
 
   newGameBtn.addEventListener("click", () => {
     handleNewGameBtnClick(game);
+  });
+
+  randomizeFleetBtn.addEventListener("click", () => {
+    handleRandomizeFleetClick(game);
   });
 }
 
@@ -60,6 +65,7 @@ function handleBoardClick(e, game) {
   const result = game.attackComputer([+cell.dataset.row, +cell.dataset.col]);
 
   renderGame(game);
+  randomizeFleetBtn.disabled = true;
 
   if (isGameOver(game)) {
     mainStatus.textContent = "You win!";
@@ -104,12 +110,18 @@ function handleBoardClick(e, game) {
 function handleNewGameBtnClick(game) {
   game.startNewGame();
   renderGame(game);
+  randomizeFleetBtn.disabled = false;
   mainStatus.textContent = "Your turn";
   subStatus.textContent = "Choose a coordinate on the computer board.";
   playerActionStatus.textContent = "Your last attack: —";
   computerActionStatus.textContent = "Computer's last attack: —";
   prevComputerAttack = null;
   isComputerThinking = false;
+}
+
+function handleRandomizeFleetClick(game) {
+  game.randomizeHumanFleet();
+  renderGame(game);
 }
 
 function isGameOver(game) {
