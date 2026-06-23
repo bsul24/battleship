@@ -10,8 +10,14 @@ let prevComputerAttack = null;
 let isComputerThinking = false;
 
 export function renderGame(game) {
+  const revealComputerShips = isGameOver(game);
+
   renderBoard(game.humanPlayer.gameboard, humanBoard, true);
-  renderBoard(game.computerPlayer.gameboard, computerBoard, false);
+  renderBoard(
+    game.computerPlayer.gameboard,
+    computerBoard,
+    revealComputerShips,
+  );
 }
 
 export function initDOMEvents(game) {
