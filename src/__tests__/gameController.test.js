@@ -341,7 +341,7 @@ describe("GameController", () => {
       const coordinates = getAllShipCoordinates(game.humanPlayer.gameboard);
 
       jest
-        .spyOn(game.computerPlayer, "getRandomAttack")
+        .spyOn(game.computerPlayer, "getComputerAttack")
         .mockImplementation(() => coordinates.shift());
 
       for (let i = 0; i < 17; i++) {

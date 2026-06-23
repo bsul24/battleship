@@ -53,9 +53,10 @@ export default class GameController {
       return "not-your-turn";
     }
 
-    const attackResult = this.humanPlayer.gameboard.receiveAttack(
-      this.computerPlayer.getRandomAttack(),
-    );
+    const attackCoordinate = this.computerPlayer.getComputerAttack();
+    const attackResult =
+      this.humanPlayer.gameboard.receiveAttack(attackCoordinate);
+    this.computerPlayer.processAttackResult(attackCoordinate, attackResult);
     if (this.humanPlayer.gameboard.allShipsSunk()) {
       this.winner = "computer";
     } else {
