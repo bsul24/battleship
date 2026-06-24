@@ -4,7 +4,7 @@ A browser-based Battleship game built for The Odin Project. The app lets a playe
 
 ## Live Demo
 
-Add your live demo link here once deployed.
+[View live project](https://battleship-bsul24.netlify.app/)
 
 ## Features
 
@@ -116,7 +116,7 @@ npm install
 Start the development server:
 
 ```bash
-npm start
+npm run dev
 ```
 
 Run the test suite:
